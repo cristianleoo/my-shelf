@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { createClient } from '@supabase/supabase-js'
 import { Metadata } from 'next'
 import { parseImages } from '@/lib/utils'
+import ProductImage from '@/components/ProductImage'
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -36,16 +36,12 @@ export default async function ProductPage({ params }: { params: { id: string } }
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               {images.length > 0 ? (
-                <Image
+                <ProductImage
                   src={images[0]}
                   alt={product.name}
                   width={500}
                   height={500}
                   className="rounded-lg"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = '/placeholder-image.jpg';
-                  }}
                 />
               ) : (
                 <div className="bg-gray-200 w-full h-[500px] flex items-center justify-center rounded-lg">
