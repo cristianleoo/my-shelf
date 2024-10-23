@@ -8,6 +8,7 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
+    domains: ['img.clerk.com'], // Add any other domains you need
   },
 };
 

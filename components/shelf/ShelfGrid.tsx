@@ -2,7 +2,7 @@
 
 import ShelfCard from './ShelfCard'
 import { Product } from '@/types'
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // Update the Product type or create a new interface
 interface ShelfProduct extends Product {
@@ -14,37 +14,47 @@ interface ShelfGridProps {
 }
 
 export default function ShelfGrid({ shelfType }: ShelfGridProps) {
-  const [products, setProducts] = useState<ShelfProduct[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchProducts() {
+    const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/shelf-products?type=${shelfType}`);
+        const response = await fetch(`/api/shelf/${shelfType}`);
         if (!response.ok) {
           throw new Error('Failed to fetch products');
         }
         const data = await response.json();
         if (Array.isArray(data)) {
           setProducts(data);
-        } else if (data.products && Array.isArray(data.products)) {
-          setProducts(data.products);
         } else {
-          throw new Error('Invalid data format');
+          console.error('Received non-array data:', data);
+          setError('Received invalid data format');
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        console.error('Error fetching products:', err);
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
       } finally {
         setIsLoading(false);
       }
-    }
+    };
+
     fetchProducts();
   }, [shelfType]);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading products: {error}</div>;
+  }
+
+  if (!Array.isArray(products) || products.length === 0) {
+    return <div>No products found.</div>;
+  }
 
   return (
     <div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
