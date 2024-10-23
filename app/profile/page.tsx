@@ -5,6 +5,7 @@ import { useUser } from '@clerk/nextjs'
 import { useUserStore } from '@/lib/userStore'
 import ShelfGrid from '@/components/shelf/ShelfGrid'
 import Image from 'next/image'
+import { Book, Smile } from 'react-feather'
 
 export default function ProfilePage() {
   const { isLoaded, isSignedIn, user } = useUser()
@@ -112,19 +113,64 @@ export default function ProfilePage() {
       </div>
 
       <div className="mt-12 space-y-12">
-        <section>
-          <h2 className="text-2xl font-bold mb-4 text-gray-800">Current Shelf</h2>
-          <ShelfGrid shelfType="current" />
-        </section>
-        <section>
-          <h2 className="text-2xl font-bold mb-4 text-gray-800">Tried Shelf</h2>
-          <ShelfGrid shelfType="tried" />
-        </section>
-        <section>
-          <h2 className="text-2xl font-bold mb-4 text-gray-800">Wishlist</h2>
-          <ShelfGrid shelfType="wishlist" />
-        </section>
+        {['current', 'tried', 'wishlist'].map((shelfType) => (
+          <section key={shelfType} className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800 capitalize">{shelfType} Shelf</h2>
+            <ShelfGridPlaceholder shelfType={shelfType} />
+          </section>
+        ))}
       </div>
     </div>
   )
+}
+
+function ShelfGridPlaceholder({ shelfType }: { shelfType: string }) {
+  interface MakeupProduct {
+    id: string;
+    name: string;
+    brand: string;
+    imageUrl: string;
+  }
+
+  const [products, setProducts] = useState<MakeupProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch makeup products for the shelf
+    // This is a placeholder, replace with actual API call
+    setLoading(false);
+    setProducts([]); // Simulating empty list for now
+  }, [shelfType]);
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-48">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+    </div>;
+  }
+
+  if (products.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-48 bg-gray-100 rounded-lg">
+        <Smile className="w-12 h-12 text-gray-400 mb-2" />
+        <p className="text-gray-500 text-lg">No makeup products in your {shelfType} shelf yet</p>
+        <button className="mt-4 px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600 transition duration-300">
+          Add a product
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      {products.map((product) => (
+        <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+          <img src={product.imageUrl} alt={product.name} className="w-full h-48 object-cover" />
+          <div className="p-4">
+            <h3 className="font-semibold text-gray-800 truncate">{product.name}</h3>
+            <p className="text-sm text-gray-600 truncate">{product.brand}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
