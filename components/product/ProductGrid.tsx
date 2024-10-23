@@ -56,6 +56,7 @@ export default function ProductGrid() {
               name: product.name,
               description: product.description || '',
               images: product.images,
+              actual_price: product.actual_price, // Add this line
             }}
           />
         ))}

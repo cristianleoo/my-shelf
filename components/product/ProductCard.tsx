@@ -5,13 +5,17 @@ import Link from 'next/link'
 import { parseImages } from '@/lib/utils'
 console.log('parseImages:', parseImages);
 
+interface Product {
+  id: string;
+  name: string;
+  actual_price: number;
+  images: string;
+  description: string; // Add this line
+  // Add other properties as needed
+}
+
 interface ProductCardProps {
-  product: {
-    id: string;
-    name: string;
-    description: string;
-    images: any;
-  }
+  product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
