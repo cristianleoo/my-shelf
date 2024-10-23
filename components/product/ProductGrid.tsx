@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import ProductCard from './ProductCard'
 import { Product } from '@/types'
 import { Button } from '@/components/ui/button'
+import { PlusCircle } from 'lucide-react'
 
 export default function ProductGrid() {
   const [products, setProducts] = useState<Product[]>([])
@@ -43,6 +44,21 @@ export default function ProductGrid() {
     }
   }
 
+  async function handleAddToShelf(productId: string) {
+    try {
+      const response = await fetch('/api/add-to-shelf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId })
+      })
+      if (!response.ok) throw new Error('Failed to add to shelf')
+      // Optionally, update UI or show a success message
+    } catch (error) {
+      console.error('Error adding to shelf:', error)
+      // Optionally, show an error message to the user
+    }
+  }
+
   if (error) return <div>Error: {error}</div>
 
   return (
@@ -56,8 +72,9 @@ export default function ProductGrid() {
               name: product.name,
               description: product.description || '',
               images: product.images,
-              actual_price: product.actual_price, // Add this line
+              actual_price: product.actual_price,
             }}
+            onAddToShelf={() => handleAddToShelf(product.id)}
           />
         ))}
       </div>

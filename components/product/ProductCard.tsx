@@ -3,22 +3,71 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { parseImages } from '@/lib/utils'
-console.log('parseImages:', parseImages);
-
-interface Product {
-  id: string;
-  name: string;
-  actual_price: number;
-  images: string;
-  description: string; // Add this line
-  // Add other properties as needed
-}
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { useUser } from '@clerk/nextjs'
+import { useUserStore } from '@/lib/userStore'
+import { supabase } from '@/lib/supabase'
+import { toast } from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
+import { PlusIcon, CheckIcon } from '@heroicons/react/24/solid'
+import { motion } from 'framer-motion'
 
 interface ProductCardProps {
-  product: Product;
+  product: {
+    id: string;
+    name: string;
+    description: string;
+    images: any;
+    actual_price: number;
+    is_in_current_shelf?: boolean; // Add this line
+  };
+  onAddToShelf: () => Promise<void>;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, onAddToShelf }: ProductCardProps) {
+  if (!product) return null; // Add a guard clause
+
+  const [isAdding, setIsAdding] = useState(false)
+  const { user } = useUser()
+  const { supabaseUserId } = useUserStore()
+  const router = useRouter()
+
+  const addToShelf = async (e: React.MouseEvent) => {
+    e.preventDefault() // Prevent navigation
+    if (!user || !supabaseUserId) {
+      toast.error('Please sign in to add products to your shelf')
+      return
+    }
+
+    setIsAdding(true)
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .update({ is_in_current_shelf: true })
+        .eq('id', product.id)
+
+      if (error) throw error
+
+      toast.success('Product added to your shelf!')
+      
+      // Dispatch custom event
+      window.dispatchEvent(new CustomEvent('productAddedToShelf'))
+      
+      // Refresh the current route
+      router.refresh()
+    } catch (error) {
+      console.error('Error adding product to shelf:', error)
+      if (error instanceof Error) {
+        toast.error(`Failed to add product to shelf: ${error.message}`)
+      } else {
+        toast.error('Failed to add product to shelf: Unknown error')
+      }
+    } finally {
+      setIsAdding(false)
+    }
+  }
+
   let images: string[] = [];
   try {
     images = parseImages(product.images);
@@ -31,7 +80,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const linkUrl = `/product/${product.id}`;
 
   return (
-    <Link href={linkUrl} className="group">
+    <Link href={linkUrl} className="group" key={product.id}>
       <div className="bg-white rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl">
         <div className="relative aspect-w-16 aspect-h-9">
           <Image
@@ -52,6 +101,40 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         </div>
       </div>
+      <motion.button
+        onClick={addToShelf}
+        disabled={isAdding || product.is_in_current_shelf}
+        className={`
+          mt-4 w-full py-2 px-4 rounded-full font-medium text-sm
+          transition-all duration-300 ease-in-out
+          ${product.is_in_current_shelf 
+            ? 'bg-green-500 text-white hover:bg-green-600' 
+            : 'bg-white text-blue-500 border border-blue-500 hover:bg-blue-50'
+          }
+          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
+        `}
+        whileTap={{ scale: 0.95 }}
+      >
+        {isAdding ? (
+          <span className="flex items-center justify-center">
+            <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Adding...
+          </span>
+        ) : product.is_in_current_shelf ? (
+          <span className="flex items-center justify-center">
+            <CheckIcon className="w-4 h-4 mr-2" />
+            In Your Shelf
+          </span>
+        ) : (
+          <span className="flex items-center justify-center">
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Add to Shelf
+          </span>
+        )}
+      </motion.button>
     </Link>
   )
 }
