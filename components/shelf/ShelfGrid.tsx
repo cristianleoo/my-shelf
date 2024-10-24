@@ -14,7 +14,7 @@ interface ShelfGridProps {
 }
 
 export default function ShelfGrid({ shelfType }: ShelfGridProps) {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<ShelfProduct[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -24,7 +24,9 @@ export default function ShelfGrid({ shelfType }: ShelfGridProps) {
         setIsLoading(true);
         const response = await fetch(`/api/shelf/${shelfType}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch products');
+          const errorText = await response.text();
+          console.error(`Server response for ${shelfType}:`, response.status, errorText);
+          throw new Error(`Failed to fetch products: ${response.status} ${errorText}`);
         }
         const data = await response.json();
         if (Array.isArray(data)) {
@@ -34,7 +36,7 @@ export default function ShelfGrid({ shelfType }: ShelfGridProps) {
           setError('Received invalid data format');
         }
       } catch (err) {
-        console.error('Error fetching products:', err);
+        console.error(`Error fetching products for ${shelfType}:`, err);
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
       } finally {
         setIsLoading(false);

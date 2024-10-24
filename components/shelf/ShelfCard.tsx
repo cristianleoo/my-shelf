@@ -13,7 +13,7 @@ export default function ShelfCard({ product, status }: ShelfCardProps) {
       <Link href={`/product/${product.id}`}>
         <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-lg bg-gray-200">
           <Image
-            src={product.images[0]} // Assuming the first image in the array is the main image
+            src={Array.isArray(product.images) ? product.images[0] : (typeof product.images === 'string' ? product.images : '')}
             alt={product.name}
             className="h-full w-full object-cover object-center group-hover:opacity-75"
             width={300}

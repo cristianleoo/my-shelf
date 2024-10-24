@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useUserStore } from '@/lib/userStore'
 import { supabase } from '@/lib/supabase'
 import ProductCard from '@/components/product/ProductCard'
@@ -21,7 +21,7 @@ export default function MyShelf() {
   const [isLoading, setIsLoading] = useState(true)
   const { supabaseUserId } = useUserStore()
 
-  const fetchShelfProducts = async () => {
+  const fetchShelfProducts = useCallback(async () => {
     setIsLoading(true)
     const { data, error } = await supabase
       .from('user_shelves')
@@ -37,6 +37,20 @@ export default function MyShelf() {
       })))
     }
     setIsLoading(false)
+  }, [supabaseUserId])
+
+  const handleRemoveFromShelf = async (productId: string) => {
+    const { error } = await supabase
+      .from('user_shelves')
+      .delete()
+      .eq('user_id', supabaseUserId)
+      .eq('product_id', productId)
+
+    if (error) {
+      console.error('Error removing product from shelf:', error)
+    } else {
+      setShelfProducts(shelfProducts.filter(product => product.id !== productId))
+    }
   }
 
   useEffect(() => {
@@ -49,7 +63,7 @@ export default function MyShelf() {
     return () => {
       window.removeEventListener('productAddedToShelf', fetchShelfProducts)
     }
-  }, [supabaseUserId])
+  }, [fetchShelfProducts])
 
   if (isLoading) {
     return <div>Loading...</div>
@@ -58,7 +72,11 @@ export default function MyShelf() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {shelfProducts.map((product) => (
-        <ProductCard key={product.id} product={product} />
+        <ProductCard 
+          key={product.id} 
+          product={product} 
+          onAddToShelf={() => handleRemoveFromShelf(product.id)}
+        />
       ))}
     </div>
   )
