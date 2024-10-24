@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import ProductCard from './ProductCard'
 import { Product } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -13,11 +13,7 @@ export default function ProductGrid() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
 
-  useEffect(() => {
-    fetchProducts()
-  }, [currentPage])
-
-  async function fetchProducts() {
+  const fetchProducts = useCallback(async () => {
     try {
       setIsLoading(true)
       const response = await fetch(`/api/shelf-products?type=want&page=${currentPage}`)
@@ -36,7 +32,11 @@ export default function ProductGrid() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [currentPage])
+
+  useEffect(() => {
+    fetchProducts()
+  }, [fetchProducts])
 
   function loadMore() {
     if (currentPage < totalPages) {
@@ -71,7 +71,7 @@ export default function ProductGrid() {
               id: product.id,
               name: product.name,
               description: product.description || '',
-              images: product.images,
+              images: Array.isArray(product.images) ? product.images[0] : (typeof product.images === 'string' ? product.images : ''),
               actual_price: product.actual_price,
             }}
             onAddToShelf={() => handleAddToShelf(product.id)}

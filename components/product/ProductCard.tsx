@@ -18,20 +18,20 @@ interface ProductCardProps {
     id: string;
     name: string;
     description: string;
-    images: any;
+    images: string; // Changed from 'any' to 'string'
     actual_price: number;
-    is_in_current_shelf?: boolean; // Add this line
+    is_in_current_shelf?: boolean;
   };
   onAddToShelf: () => Promise<void>;
 }
 
 export default function ProductCard({ product, onAddToShelf }: ProductCardProps) {
-  if (!product) return null; // Add a guard clause
-
   const [isAdding, setIsAdding] = useState(false)
   const { user } = useUser()
   const { supabaseUserId } = useUserStore()
   const router = useRouter()
+
+  if (!product) return null; // Move the guard clause after the hooks
 
   const addToShelf = async (e: React.MouseEvent) => {
     e.preventDefault() // Prevent navigation

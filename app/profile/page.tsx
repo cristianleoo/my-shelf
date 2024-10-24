@@ -164,7 +164,13 @@ function ShelfGridPlaceholder({ shelfType }: { shelfType: string }) {
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
       {products.map((product) => (
         <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-          <img src={product.imageUrl} alt={product.name} className="w-full h-48 object-cover" />
+          <Image
+            src={product.imageUrl}
+            alt={product.name}
+            width={200}
+            height={192}
+            className="w-full h-48 object-cover"
+          />
           <div className="p-4">
             <h3 className="font-semibold text-gray-800 truncate">{product.name}</h3>
             <p className="text-sm text-gray-600 truncate">{product.brand}</p>

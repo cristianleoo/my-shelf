@@ -2,7 +2,7 @@ export interface Product {
   id: string;
   name: string;
   description?: string;
-  images: any; // This can be a string, array, or object
+  images: string | string[] | { [key: string]: string };
   actual_price: number;
   url?: string | null;
   sku: string;
@@ -22,7 +22,7 @@ export interface Product {
   delivery_options: string[];
   breadcrumbs: string[];
   promotions_eligible: boolean;
-  variants: any[]; // You might want to define a more specific type for variants
+  variants: ProductVariant[];
   tips: string;
   more_information: string;
   ingredients: string;
@@ -49,3 +49,10 @@ export interface Review {
   createdAt: string
 }
 
+interface ProductVariant {
+  id: string;
+  name: string;
+  sku: string;
+  price: number;
+  in_stock: boolean;
+}
